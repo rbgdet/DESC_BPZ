@@ -39,7 +39,10 @@ from desc_bpz.will_tools_py3 import *
 from desc_bpz.paths import get_fil_file, get_sed_file, get_ab_file
 from desc_bpz.paths import set_fil_dir, set_sed_dir, set_ab_dir
 from desc_bpz.coetools_py3 import pause, params_cl
+import scipy
+from scipy.interpolate import interp1d
 
+print('RAUL\'S VERSION')
 
 def seglist(vals, mask=None):
     """Split vals into lists based on mask > 0"""
@@ -92,7 +95,9 @@ pars.d={
     'VERBOSE': 'yes',       # Print estimated redshifts to the standard output
     'PROBS': 'no',          # Save all the galaxy probability distributions (it will create a very large file)
     'PROBS2': 'no',         # Save all the galaxy probability distributions P(z,t) (but not priors) -- Compact
-    'PROBS_LITE': 'yes',     # Save only the final probability distribution
+    'PROBS_LITE': 'yes',    # Save only the final probability distribution
+    'SAMPLING': 'no',        # Save random photo-z sampled from object posterior PDF
+    'NSAMPLES': 1,	    #Number of random samples drawn for each object
     'GET_Z': 'yes',         # Actually obtain photo-z
     'ONLY_TYPE':'no',       # Use spectroscopic redshifts instead of photo-z
     'MADAU':'yes',          #Apply Madau correction to spectra
@@ -125,8 +130,7 @@ pars.d={
 
 if pars.d['PLOTS']=='no': plots=0
 if pars.d['WRITE_FLUX_COMP'] == 'no': write_flux_comp = False
-
-
+    
 
 if plots:
     # If pylab installed show plots
@@ -244,7 +248,13 @@ if pars.d["ADD_SPEC_PROB"]!=None:
     specout.write(header)
 else:
     specprob=0
-pars.d['DELTA_M_0']=float(pars.d['DELTA_M_0'])    
+pars.d['DELTA_M_0']=float(pars.d['DELTA_M_0'])
+
+#sampling
+if pars.d['SAMPLING'] == 'no': save_sample = False
+else: save_sample = True
+
+if save_sample: nsamples = pars.d['NSAMPLES']
 
 #Some misc. initialization info useful for the .columns file
 #nofilters=['M_0','OTHER','ID','Z_S','X','Y']
@@ -970,9 +980,7 @@ print(odds_i,oi)
 
 #Proceed to redshift estimation
 
-
 if checkSED: buffer_flux_comparison=""
-
 
 if pars.d['CONVOLVE_P']=='yes':
     # Will Convolve with a dz=0.03 gaussian to make probabilities smoother
@@ -982,6 +990,7 @@ if pars.d['CONVOLVE_P']=='yes':
     gaus=exp(-(x/sigma_g)**2)
 
 if pars.d["NMAX"]!=None: ng=int(pars.d["NMAX"])
+its_samples = []
 for ig in range(ng):
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
@@ -1045,8 +1054,8 @@ for ig in range(ng):
             p_i=ones((nz,nt),float)/float(nz*nt)
         if cluster_prior:p_i=(1.-fcc)*p_i+pi_c
     
-    if save_full_probs: full_probs[id[ig]]=[z,p_i[:nz,:nt],p[:nz,:nt],red_chi2]
-	
+    if save_full_probs: full_probs[id[ig]]=[z,p_i[:nz,:nt],p[:nz,:nt],red_chi2]  
+        
     #Multiply the prior by the likelihood to find the final probability
     pb=p_i[:nz,:nt]*p[:nz,:nt]
     pb_f_name = str(id[ig])+'.prob_2d'
@@ -1432,6 +1441,20 @@ for ig in range(ng):
             #probs2.write('%d  ' % itb)
             #probs2.write(fmt % tuple(chisqtb))
 
+    if save_sample:
+        pdf = p[:nz,:nt][t_ml]
+        cdf = np.cumsum(pdf)/np.sum(pdf)
+        ITS = interp1d(cdf, z, kind='cubic')
+
+        its_samples.append(ITS(np.random.uniform(cdf[0], 1, size=nsamples)))
+
+if save_sample: 
+    np.savetxt(root+'_ITS.txt', its_samples)
+
+#    with open(root+'_ITS.txt', "w") as output:
+#        for sample in its_samples:
+#            output.write('%s/n' % sample)
+        
 #if checkSED: open(pars.d['FLUX_COMPARISON'],'w').write(buffer_flux_comparison)
 if write_flux_comp: open(pars.d['CHECK'],'w').write(buffer_flux_comparison)
 
@@ -1516,7 +1539,9 @@ if checkSED:
     if save_probs: probs.close()
     if save_probs2: probs2.close()
     
-
+    
+#what format do we want to save it as? HDF5, shelve, fits, csv?
+    
 if plots and checkSED:
     zb,zm,zb1,zb2,o,tb=get_data(out_name,(1,6,2,3,5,4))
     #Plot the comparison between z_spec and z_B
