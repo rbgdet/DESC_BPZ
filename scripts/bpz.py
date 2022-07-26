@@ -96,8 +96,9 @@ pars.d={
     'PROBS': 'no',          # Save all the galaxy probability distributions (it will create a very large file)
     'PROBS2': 'no',         # Save all the galaxy probability distributions P(z,t) (but not priors) -- Compact
     'PROBS_LITE': 'yes',    # Save only the final probability distribution
-    'SAMPLING': 'no',        # Save random photo-z sampled from object posterior PDF
-    'NSAMPLES': 1,	    #Number of random samples drawn for each object
+    'SAMPLING': 'no',       # Save random photo-z sampled from object posterior PDF
+    'NSAMPLES': 1,	    # Number of random samples drawn for each object
+    'SEED': 42,             # Seed for random sample
     'GET_Z': 'yes',         # Actually obtain photo-z
     'ONLY_TYPE':'no',       # Use spectroscopic redshifts instead of photo-z
     'MADAU':'yes',          #Apply Madau correction to spectra
@@ -991,6 +992,9 @@ if pars.d['CONVOLVE_P']=='yes':
 
 if pars.d["NMAX"]!=None: ng=int(pars.d["NMAX"])
 its_samples = []
+cdf_no = 0
+seed = int(pars.d['SEED'])
+sampling_rng = np.random.default_rng(seed)
 for ig in range(ng):
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
@@ -1054,8 +1058,8 @@ for ig in range(ng):
             p_i=ones((nz,nt),float)/float(nz*nt)
         if cluster_prior:p_i=(1.-fcc)*p_i+pi_c
     
-    if save_full_probs: full_probs[id[ig]]=[z,p_i[:nz,:nt],p[:nz,:nt],red_chi2]  
-        
+    if save_full_probs: full_probs[str(id[ig])]=[z,p_i[:nz,:nt],p[:nz,:nt],red_chi2]  
+    
     #Multiply the prior by the likelihood to find the final probability
     pb=p_i[:nz,:nt]*p[:nz,:nt]
     pb_f_name = str(id[ig])+'.prob_2d'
@@ -1442,15 +1446,28 @@ for ig in range(ng):
             #probs2.write(fmt % tuple(chisqtb))
 
     if save_sample:
-        pdf = p[:nz,:nt][t_ml]
+        pdf = p[:nz,:nt][:,t_ml]
+        pdflen = pdf.size
+        samplemask = pdf>1.e-14
+        pdf = pdf[samplemask]
         cdf = np.cumsum(pdf)/np.sum(pdf)
-        ITS = interp1d(cdf, z, kind='cubic')
+        #cdf += np.arange(0, pdflen, 1)*1.e-15
+        #print("pdf, cdf, z:", pdf.size, cdf.size, z.size)
+        ITS = interp1d(cdf, z[samplemask], kind='linear')
+        rnumber = sampling_rng.uniform(cdf[0], cdf[-1], size=1)
+        samps = ITS(rnumber)
+        its_samples.append(samps)
+        gt3 = samps>3.505
+        lt0 = samps<0.
+        if np.any(np.logical_or(gt3, lt0)):
+            cdf_no+=1
+            np.savetxt(root+f'_CDF#{cdf_no}.txt', np.array([z[samplemask], cdf]).T, fmt='%.18e')
+            np.savetxt(root+f'_badsample#{cdf_no}.txt', np.array([samps, rnumber]).T, fmt='%.18e')
 
-        its_samples.append(ITS(np.random.uniform(cdf[0], 1, size=nsamples)))
 
 if save_sample: 
     np.savetxt(root+'_ITS.txt', its_samples)
-
+print("ROOT", root)
 #    with open(root+'_ITS.txt', "w") as output:
 #        for sample in its_samples:
 #            output.write('%s/n' % sample)
