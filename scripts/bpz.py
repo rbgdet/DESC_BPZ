@@ -255,7 +255,7 @@ pars.d['DELTA_M_0']=float(pars.d['DELTA_M_0'])
 if pars.d['SAMPLING'] == 'no': save_sample = False
 else: save_sample = True
 
-if save_sample: nsamples = pars.d['NSAMPLES']
+if save_sample: nsamples = int(pars.d['NSAMPLES'])
 
 #Some misc. initialization info useful for the .columns file
 #nofilters=['M_0','OTHER','ID','Z_S','X','Y']
@@ -1446,28 +1446,40 @@ for ig in range(ng):
             #probs2.write(fmt % tuple(chisqtb))
 
     if save_sample:
+        #print('save sample was set to TRUE', ig)
         pdf = p[:nz,:nt][:,t_ml]
         pdflen = pdf.size
+        #if ig>2890:
+        #    print(pdf) 
         samplemask = pdf>1.e-14
         pdf = pdf[samplemask]
         cdf = np.cumsum(pdf)/np.sum(pdf)
         #cdf += np.arange(0, pdflen, 1)*1.e-15
         #print("pdf, cdf, z:", pdf.size, cdf.size, z.size)
-        ITS = interp1d(cdf, z[samplemask], kind='linear')
-        rnumber = sampling_rng.uniform(cdf[0], cdf[-1], size=1)
-        samps = ITS(rnumber)
+        samplemasksum=samplemask.sum()
+        if samplemasksum>10:
+            ITS = interp1d(cdf, z[samplemask], kind='linear')
+            rnumber = sampling_rng.uniform(cdf[0], cdf[-1], size=nsamples)
+            samps = ITS(rnumber)
+        else:
+            samps=-1000-samplemasksum
         its_samples.append(samps)
-        gt3 = samps>3.505
-        lt0 = samps<0.
-        if np.any(np.logical_or(gt3, lt0)):
-            cdf_no+=1
-            np.savetxt(root+f'_CDF#{cdf_no}.txt', np.array([z[samplemask], cdf]).T, fmt='%.18e')
-            np.savetxt(root+f'_badsample#{cdf_no}.txt', np.array([samps, rnumber]).T, fmt='%.18e')
+        #gt3 = samps>3.505
+        #lt0 = samps<0.
+        #if ig>2890:
+        #    print(cdf)
+        #if np.any(np.logical_or(gt3, lt0)):
+            #print('BAD SAMPS', samps)
+            #cdf_no+=1
+            #np.savetxt(root+f'_CDF#{cdf_no}.txt', np.array([z[samplemask], cdf]).T, fmt='%.18e')
+            #np.savetxt(root+f'_badsample#{cdf_no}.txt', np.array([samps, rnumber]).T, fmt='%.18e')
 
 
-if save_sample: 
-    np.savetxt(root+'_ITS.txt', its_samples)
-print("ROOT", root)
+if save_sample:
+    #print('save sample was set to TRUE')
+    np.savetxt(out_name.split('.')[0]+'_ITS.txt', its_samples)
+    
+#print("ROOT", root)
 #    with open(root+'_ITS.txt', "w") as output:
 #        for sample in its_samples:
 #            output.write('%s/n' % sample)
