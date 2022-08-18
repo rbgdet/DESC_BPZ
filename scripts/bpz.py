@@ -324,6 +324,7 @@ if pars.d['EXCLUDE']!='none':
 for filter in filters:
     if filter[-4:]=='.res': filter=filter[:-4]
     if filter not in filters_db:
+        print("FILTER", filters_db, filter)
         print('filter ', filter, 'not in database at',get_fil_file(''), ':')
         if ask('Print filters in database?'):
             for line in filters_db: print(line)
@@ -354,6 +355,7 @@ for it in range(nt):
         if filters[jf][-4:]=='.res': filtro=filters[jf][:-4]
         else: filtro=filters[jf]
         model=spectra[it]+'.'+filtro+'.AB'
+        print("MODEL", model)
         model_path = get_ab_file(model)
         abfiles.append(model)
         #Generate new ABflux files if not present
@@ -1446,16 +1448,10 @@ for ig in range(ng):
             #probs2.write(fmt % tuple(chisqtb))
 
     if save_sample:
-        #print('save sample was set to TRUE', ig)
-        pdf = p[:nz,:nt][:,t_ml]
-        pdflen = pdf.size
-        #if ig>2890:
-        #    print(pdf) 
+        pdf = np.sum(p[:nz,:nt], axis=1) #[:,t_ml] # modify this to be sum of templates
         samplemask = pdf>1.e-14
         pdf = pdf[samplemask]
         cdf = np.cumsum(pdf)/np.sum(pdf)
-        #cdf += np.arange(0, pdflen, 1)*1.e-15
-        #print("pdf, cdf, z:", pdf.size, cdf.size, z.size)
         samplemasksum=samplemask.sum()
         if samplemasksum>10:
             ITS = interp1d(cdf, z[samplemask], kind='linear')
@@ -1476,6 +1472,7 @@ for ig in range(ng):
 
 
 if save_sample:
+    print(out_name)
     #print('save sample was set to TRUE')
     np.savetxt(out_name.split('.')[0]+'_ITS.txt', its_samples)
     
