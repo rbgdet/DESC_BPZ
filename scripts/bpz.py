@@ -355,7 +355,7 @@ for it in range(nt):
         if filters[jf][-4:]=='.res': filtro=filters[jf][:-4]
         else: filtro=filters[jf]
         model=spectra[it]+'.'+filtro+'.AB'
-        print("MODEL", model)
+        #print("MODEL", model)
         model_path = get_ab_file(model)
         abfiles.append(model)
         #Generate new ABflux files if not present
@@ -1083,6 +1083,8 @@ for ig in range(ng):
 
     #Estimate the bayesian quantities
     p_bayes=add.reduce(pb[:nz,:nt],-1)
+    #print("HERE PB ", pb[:nz,:nt].shape, '\n', pb[:nz,:nt])
+    #print("P_BAYES ", p_bayes.shape, '\n', p_bayes)
     #print p_bayes.shape
     #print argmax(p_bayes)
     #print p_bayes[300:310]
@@ -1448,12 +1450,13 @@ for ig in range(ng):
             #probs2.write(fmt % tuple(chisqtb))
 
     if save_sample:
-        pdf = np.sum(p[:nz,:nt], axis=1) #[:,t_ml] # modify this to be sum of templates
+        pdf = p_bayes #np.sum(p[:nz,:nt], axis=1) #[:,t_ml] # modify this to be sum of templates
         samplemask = pdf>1.e-14
         pdf = pdf[samplemask]
-        cdf = np.cumsum(pdf)/np.sum(pdf)
+        cdf = np.cumsum(pdf)# don't need to divide, p_bayes is already normalized/np.sum(pdf)
+        #print("NORM", np.sum(pdf), cdf.max())
         samplemasksum=samplemask.sum()
-        if samplemasksum>10:
+        if samplemasksum>10: # see if we really want 10 here
             ITS = interp1d(cdf, z[samplemask], kind='linear')
             rnumber = sampling_rng.uniform(cdf[0], cdf[-1], size=nsamples)
             samps = ITS(rnumber)
