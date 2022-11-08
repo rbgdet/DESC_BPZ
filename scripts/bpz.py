@@ -98,7 +98,9 @@ pars.d={
     'PROBS_LITE': 'yes',    # Save only the final probability distribution
     'SAMPLING': 'no',       # Save random photo-z sampled from object posterior PDF
     'NSAMPLES': 1,	    # Number of random samples drawn for each object
-    'SEED': 42,             # Seed for random sample
+    'SEED': 42,          # Seed for random sample
+    'Z_MEAN': 'yes',         # Get mean redshift of galaxy N(z)
+    'Z_SIG': 'yes',          # Get standard deviation of galaxy N(z)
     'GET_Z': 'yes',         # Actually obtain photo-z
     'ONLY_TYPE':'no',       # Use spectroscopic redshifts instead of photo-z
     'MADAU':'yes',          #Apply Madau correction to spectra
@@ -254,6 +256,12 @@ pars.d['DELTA_M_0']=float(pars.d['DELTA_M_0'])
 #sampling
 if pars.d['SAMPLING'] == 'no': save_sample = False
 else: save_sample = True
+    
+if pars.d['Z_MEAN'] == 'no': save_mean = False
+else: save_mean = True
+    
+if pars.d['Z_SIG'] == 'no': save_std = False
+else: save_std = True
 
 if save_sample: nsamples = int(pars.d['NSAMPLES'])
 
@@ -943,6 +951,12 @@ if ng<chunksize:
     outzml = output.create_dataset("Z_ML",(ng,),dtype='f')
     outtml = output.create_dataset("T_ML",(ng,),dtype='f')
     outchi = output.create_dataset("CHI_SQ",(ng,),dtype='f')
+    if save_sample: 
+        outzsamp = output.create_dataset("Z_SAMP",(ng,),dtype='f')
+    if save_mean:
+        outzmean = output.create_dataset("Z_MEAN", (ng,), dtype='f')
+    if save_std:
+        outsig = output.create_dataset("Z_SIG", (ng,), dtype='f')
     if 'Z_S' in col_pars.d: 
         outzs = output.create_dataset("Z_S",(ng,),dtype='f')
     if has_mags: 
@@ -958,6 +972,12 @@ else:
     outzml = output.create_dataset("Z_ML",(chunksize,),maxshape=(None,),dtype='f')
     outtml = output.create_dataset("T_ML",(chunksize,),maxshape=(None,),dtype='f')
     outchi = output.create_dataset("CHI_SQ",(chunksize,),maxshape=(None,),dtype='f')
+    if save_sample: 
+        outzsamp = output.create_dataset("Z_SAMP",(ng,),dtype='f')
+    if save_mean:
+        outzmean = output.create_dataset("Z_MEAN", (ng,), dtype='f')
+    if save_std:
+        outsig = output.create_dataset("Z_SIG", (ng,), dtype='f')
     if 'Z_S' in col_pars.d: 
         outzs = output.create_dataset("Z_S",(chunksize,),maxshape=(None,),dtype='f')
     if has_mags: 
@@ -998,6 +1018,7 @@ cdf_no = 0
 seed = int(pars.d['SEED'])
 sampling_rng = np.random.default_rng(seed)
 for ig in range(ng):
+    if ig%100 == 0: print(ig)
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
     #    if z_s[ig]<9.9 and z_s[ig]>zmax : continue
@@ -1462,7 +1483,10 @@ for ig in range(ng):
             samps = ITS(rnumber)
         else:
             samps=-1000-samplemasksum
-        its_samples.append(samps)
+        #its_samples.append(samps)
+        outzsamp[ig] = samps
+        outzmean[ig] = Nzmean(z[samplemask], pdf)
+        outsig[ig] = Nzstd(z[samplemask], pdf)
         #gt3 = samps>3.505
         #lt0 = samps<0.
         #if ig>2890:
@@ -1475,9 +1499,9 @@ for ig in range(ng):
 
 
 if save_sample:
-    print(out_name)
+    print('out_name', out_name)
     #print('save sample was set to TRUE')
-    np.savetxt(out_name.split('.')[0]+'_ITS.txt', its_samples)
+    #np.savetxt(out_name.split('.')[0]+'_ITS.txt', its_samples)
     
 #print("ROOT", root)
 #    with open(root+'_ITS.txt', "w") as output:
