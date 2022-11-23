@@ -479,7 +479,9 @@ eflux_cols=tuple(eflux_cols)
 ##ef_obs=get_2Darray_fromfits(obs_file,eflux_cols)
 
 f_obs=get_2Darray_hdf5(obs_file,flux_cols)
+print('\n!!!!\nF_OBS: ', f_obs, f_obs.shape)
 ef_obs=get_2Darray_hdf5(obs_file,eflux_cols)
+print('\n!!!!!\n EF_OBS', ef_obs, ef_obs.shape)
 #REMOVE THESE and replace with hdf5-SJS March 6, 2019
 #f_obs=get_2Darray(obs_file,flux_cols)
 #ef_obs=get_2Darray(obs_file,eflux_cols)
@@ -973,11 +975,11 @@ else:
     outtml = output.create_dataset("T_ML",(chunksize,),maxshape=(None,),dtype='f')
     outchi = output.create_dataset("CHI_SQ",(chunksize,),maxshape=(None,),dtype='f')
     if save_sample: 
-        outzsamp = output.create_dataset("Z_SAMP",(ng,),dtype='f')
+        outzsamp = output.create_dataset("Z_SAMP",(chunksize,),maxshape=(None,),dtype='f')
     if save_mean:
-        outzmean = output.create_dataset("Z_MEAN", (ng,), dtype='f')
+        outzmean = output.create_dataset("Z_MEAN", (chunksize,),maxshape=(None,), dtype='f')
     if save_std:
-        outsig = output.create_dataset("Z_SIG", (ng,), dtype='f')
+        outsig = output.create_dataset("Z_SIG", (chunksize,),maxshape=(None,), dtype='f')
     if 'Z_S' in col_pars.d: 
         outzs = output.create_dataset("Z_S",(chunksize,),maxshape=(None,),dtype='f')
     if has_mags: 
@@ -985,6 +987,9 @@ else:
 
         
 h5quantities = [outid,outzb,outzbmin,outzbmax,outtb,outodds,outzml,outtml,outchi]
+if save_sample: h5quantities.append(outzsamp)
+if save_mean: h5quantities.append(outzmean)
+if save_std: h5quantities.append(outsig)
 if 'Z_S' in col_pars.d:
     h5quantities.append(outzs)
 if has_mags:
@@ -1018,7 +1023,7 @@ cdf_no = 0
 seed = int(pars.d['SEED'])
 sampling_rng = np.random.default_rng(seed)
 for ig in range(ng):
-    if ig%100 == 0: print(ig)
+    if ig%1000 == 0: print(ig)
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
     #    if z_s[ig]<9.9 and z_s[ig]>zmax : continue
@@ -1497,7 +1502,8 @@ for ig in range(ng):
             #np.savetxt(root+f'_CDF#{cdf_no}.txt', np.array([z[samplemask], cdf]).T, fmt='%.18e')
             #np.savetxt(root+f'_badsample#{cdf_no}.txt', np.array([samps, rnumber]).T, fmt='%.18e')
 
-
+    #if (0.05 < zb < .15) & (22 < m_0[ig] < 22.5):
+     #  pass#breakpoint()
 if save_sample:
     print('out_name', out_name)
     #print('save sample was set to TRUE')

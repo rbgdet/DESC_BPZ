@@ -1,0 +1,8 @@
+#Filter        columns  cal(AB or Vega,optional)  zp_error  zp_offset
+DECam_2014_g      FLUX_AUTO_G, FLUXERR_AUTO_G	AB 			0.005	    0.0
+DECam_2014_r      FLUX_AUTO_R, FLUXERR_AUTO_R	AB			  0.005     0.0
+DECam_2014_i      FLUX_AUTO_I, FLUXERR_AUTO_I	AB			  0.005	    0.0
+DECam_2014_z      FLUX_AUTO_Z, FLUXERR_AUTO_Z	AB			  0.005	    0.0
+ID		NUMBER
+M_0		MAG_AUTO_I
+

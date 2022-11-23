@@ -1,5 +1,5 @@
-COLUMNS     /home/raulteixeira/repos/DESC_BPZ/tests/CosmicShearPZ.columns
-OUTPUT	    /home/raulteixeira/scratch-midway2/CosmicShearData/bpztiles/output/pzs/pz_test_DES1156-3706.h5
+COLUMNS     /home/raulteixeira/repos/DESC_BPZ/tests/CosmicShearPZ_COADD_ID.columns
+OUTPUT	    /home/raulteixeira/scratch-midway2/CosmicShearData/bpztiles/output/pzs/pz_hdfn_gen_METACAL4_DES1212-3540_test110822.h5
 SPECTRA     CWWSB4.list
 PRIOR	  hdfn_gen
 DZ          0.01
@@ -15,7 +15,7 @@ CHECK       yes
 VERBOSE     no
 #INTERP      0
 ODDS        0.68
-PROBS      /home/raulteixeira/scratch-midway2/CosmicShearData/bpztiles/output/probs/pz_test_probs_DES1156-3706
+PROBS      /home/raulteixeira/scratch-midway2/CosmicShearData/bpztiles/output/probs/pz_hdfn_gen_METACAL4_probs_DES1212-3540_test110822
 PROBS2     no
 PROBS_LITE no
 GET_Z       yes

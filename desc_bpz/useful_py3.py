@@ -1142,7 +1142,15 @@ def rotation(x,y,angle):
     yp=-x*sin(angle)+y*cos(angle)
     return xp,yp
 
+#put by Raul
+def Nzmean(x, y):
+    y/=sum(y)
+    return dot(x, y)
 
+def Nzstd(x, y):
+    y/=sum(y)
+    mu = dot(x, y)
+    return sqrt(dot((x-mu)**2, y))
 
 
 
