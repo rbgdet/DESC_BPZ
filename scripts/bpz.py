@@ -1022,6 +1022,7 @@ its_samples = []
 cdf_no = 0
 seed = int(pars.d['SEED'])
 sampling_rng = np.random.default_rng(seed)
+full_chi2 = []
 for ig in range(ng):
     if ig%1000 == 0: print(ig)
     #Don't run BPZ on galaxies with have z_s > z_max
@@ -1054,7 +1055,9 @@ for ig in range(ng):
     
     iz_ml=likelihood.i_z_ml
     t_ml=likelihood.i_t_ml
+    chi2 = likelihood.chi2
     red_chi2=likelihood.min_chi2/float(nf-1.)
+    full_chi2.append(likelihood.chi2)
     #p=likelihood.Bayes_likelihood
     #likelihood.various_plots()
     #print 'FULL BAYESAIN LIKELIHOOD'
@@ -1502,8 +1505,9 @@ for ig in range(ng):
             #np.savetxt(root+f'_CDF#{cdf_no}.txt', np.array([z[samplemask], cdf]).T, fmt='%.18e')
             #np.savetxt(root+f'_badsample#{cdf_no}.txt', np.array([samps, rnumber]).T, fmt='%.18e')
 
-    #if (0.05 < zb < .15) & (22 < m_0[ig] < 22.5):
-     #  pass#breakpoint()
+    #if ig == 34:
+    #if (0.4 < zb < .8) & (21 < m_0[ig] < 22):
+        #breakpoint()
 if save_sample:
     print('out_name', out_name)
     #print('save sample was set to TRUE')
@@ -1597,7 +1601,7 @@ if checkSED:
     #if save_probs: probs.close()
     if save_probs: probs.close()
     if save_probs2: probs2.close()
-    
+np.save(root+'.chi2.npy', full_chi2)
     
 #what format do we want to save it as? HDF5, shelve, fits, csv?
     
