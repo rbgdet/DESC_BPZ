@@ -497,6 +497,7 @@ print('\n!!!!!\n EF_OBS', ef_obs, ef_obs.shape)
 #ef_obs /= flux_conv_factor
 
 #Convert them to arbitrary fluxes if they are in magnitudes
+print('pars.d[\'MAG\']:', pars.d['MAG'])
 if pars.d['MAG']=='yes':
     seen=greater(f_obs,0.)*less(f_obs,undet)
     no_seen=equal(f_obs,undet)
