@@ -490,11 +490,13 @@ print('\n!!!!!\n EF_OBS', ef_obs, ef_obs.shape)
 #f_obs=get_2Darray(obs_file,flux_cols)
 #ef_obs=get_2Darray(obs_file,eflux_cols)
 
-# convert to 'AB' fluxes - how can this possibly be necessary!? Looks like it is. WHY?
-# Nope, things are still mostly bull! dmag are waaay off, or is that flux? that would be unhelpful....
-#flux_conv_factor = (10**((48.6 - pars.d['FLUX_ZP'])/2.5))
-#f_obs /= flux_conv_factor
-#ef_obs /= flux_conv_factor
+#convert to 'AB' fluxes - how can this possibly be necessary!? Looks like it is. WHY?
+#Nope, things are still mostly bull! dmag are waaay off, or is that flux? that would be unhelpful....
+
+#Trying out if this works better with BDF fluxes, otherwise get uninformative likelihoods - Raul and Alex
+flux_conv_factor = (10**((48.6 - pars.d['FLUX_ZP'])/2.5))
+f_obs /= flux_conv_factor
+ef_obs /= flux_conv_factor
 
 #Convert them to arbitrary fluxes if they are in magnitudes
 print('pars.d[\'MAG\']:', pars.d['MAG'])
@@ -1025,7 +1027,7 @@ seed = int(pars.d['SEED'])
 sampling_rng = np.random.default_rng(seed)
 full_chi2 = []
 for ig in range(ng):
-    if ig%1000 == 0: print(ig)
+    #if ig%1000 == 0: print(ig)
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
     #    if z_s[ig]<9.9 and z_s[ig]>zmax : continue
@@ -1480,22 +1482,23 @@ for ig in range(ng):
             #probs2.write(fmt % tuple(chisqtb))
 
     if save_sample:
-        pdf = p_bayes #np.sum(p[:nz,:nt], axis=1) #[:,t_ml] # modify this to be sum of templates
-        samplemask = pdf>1.e-14
-        pdf = pdf[samplemask]
-        cdf = np.cumsum(pdf)# don't need to divide, p_bayes is already normalized/np.sum(pdf)
-        #print("NORM", np.sum(pdf), cdf.max())
-        samplemasksum=samplemask.sum()
-        if samplemasksum>10: # see if we really want 10 here
-            ITS = interp1d(cdf, z[samplemask], kind='linear')
-            rnumber = sampling_rng.uniform(cdf[0], cdf[-1], size=nsamples)
-            samps = ITS(rnumber)
-        else:
-            samps=-1000-samplemasksum
+        #pdf = p_bayes #np.sum(p[:nz,:nt], axis=1) #[:,t_ml] # modify this to be sum of templates
+        samps = np.random.choice(z, p=p_bayes, size=nsamples)
+#         samplemask = pdf>1.e-14
+#         pdf = pdf[samplemask]
+#         cdf = np.cumsum(pdf)# don't need to divide, p_bayes is already normalized/np.sum(pdf)
+#         #print("NORM", np.sum(pdf), cdf.max())
+#         samplemasksum=samplemask.sum()
+#         if samplemasksum>10: # see if we really want 10 here
+#             ITS = interp1d(cdf, z[samplemask], kind='linear')
+#             rnumber = sampling_rng.uniform(cdf[0], cdf[-1], size=nsamples)
+#             samps = ITS(rnumber)
+#         else:
+#             samps=-1000-samplemasksum
         #its_samples.append(samps)
         outzsamp[ig] = samps
-        outzmean[ig] = Nzmean(z[samplemask], pdf)
-        outsig[ig] = Nzstd(z[samplemask], pdf)
+        outzmean[ig] = np.average(z, weights=p_bayes)
+        outsig[ig] = np.sqrt( np.average( (z-outzmean[ig])**2, weights=p_bayes) )
         #gt3 = samps>3.505
         #lt0 = samps<0.
         #if ig>2890:
@@ -1509,6 +1512,7 @@ for ig in range(ng):
     #if ig == 34:
     #if (0.4 < zb < .8) & (21 < m_0[ig] < 22):
         #breakpoint()
+        
 if save_sample:
     print('out_name', out_name)
     #print('save sample was set to TRUE')
