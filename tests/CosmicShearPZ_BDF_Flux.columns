@@ -1,0 +1,8 @@
+#Filter        columns  cal(AB or Vega,optional)  zp_error  zp_offset
+DECam_2014_g      BDF_FLUX_G, BDF_FLUX_ERR_G	AB 			0.02	    0.0
+DECam_2014_r      BDF_FLUX_R, BDF_FLUX_ERR_R	AB			  0.02     0.0
+DECam_2014_i      BDF_FLUX_I, BDF_FLUX_ERR_I	AB			  0.02	    0.0
+DECam_2014_z      BDF_FLUX_Z, BDF_FLUX_ERR_Z	AB			  0.02	    0.0
+ID		COADD_OBJECT_ID
+M_0		BDF_MAG_I
+

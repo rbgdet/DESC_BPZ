@@ -1,0 +1,13 @@
+#Filter        columns  cal(AB or Vega,optional)  zp_error  zp_offset
+DECam_2014_g      MAG_AUTO_G, MAGERR_AUTO_G	AB 			0.005	    0.0
+DECam_2014_r      MAG_AUTO_R, MAGERR_AUTO_R	AB			  0.005     0.0
+#DECam_2014_i      MAG_AUTO_I, MAGERR_AUTO_I	AB			  0.005	    0.0
+DECam_2014_z      MAG_AUTO_Z, MAGERR_AUTO_Z	AB			  0.005	    0.0
+w1filter      mag_w1_ab, magerr_w1	AB			  0.005	    0.0
+w2filter      mag_w2_ab, magerr_w2	AB			  0.005	    0.0
+2MASS_J       mag_J, magerr_J		AB		0.005		0.0
+2MASS_H       mag_H, magerr_H		AB		0.005		0.0
+2MASS_K       mag_K, magerr_K		AB		0.005		0.0	
+ID		ID
+M_0		MAG_AUTO_R
+
