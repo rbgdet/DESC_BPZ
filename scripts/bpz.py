@@ -1095,6 +1095,11 @@ for ig in range(ng):
     if save_full_probs: full_probs[str(id[ig])]=[z,p_i[:nz,:nt],p[:nz,:nt],red_chi2]  
     
     #Multiply the prior by the likelihood to find the final probability
+    test = np.ones_like(p[:nz,:nt])
+    test /= np.sum(test)
+    test *= np.sum(p[:nz,:nt])
+    #print('TEST, LIKELIHOOD sums', np.sum(test), np.sum(p[:nz,:nt]))
+    assert not np.allclose(p[:nz,:nt], test)
     pb=p_i[:nz,:nt]*p[:nz,:nt]
     pb_f_name = str(id[ig])+'.prob_2d'
     #savez(pb_f_name, pb=pb, chi2=p, prior=p_i)
