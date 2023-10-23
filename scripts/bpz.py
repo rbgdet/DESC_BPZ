@@ -1611,7 +1611,7 @@ if checkSED:
     #if save_probs: probs.close()
     if save_probs: probs.close()
     if save_probs2: probs2.close()
-np.save(root+'.chi2.npy', full_chi2)
+#np.save(root+'.chi2.npy', full_chi2)
     
 #what format do we want to save it as? HDF5, shelve, fits, csv?
     
